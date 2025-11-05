@@ -40,6 +40,7 @@ export default function App() {
     const pageSettingsData = useMemo(() => settingsData(), []);
 
     const allSetting = pageSettingsData.settings ?? [];
+    const allConfigs = pageSettingsData.configs ?? [];
 
     const [loading, setLoading] = useState(false);
 
@@ -99,10 +100,20 @@ export default function App() {
         }
     };
 
+    const widthMap = {
+        mini: "max-w-2xl",
+        small: "max-w-4xl",
+        medium: "max-w-5xl",
+        large: "max-w-6xl",
+        extra: "max-w-8xl",
+    } as any;
+    const pageWidth = allConfigs?.page_width ?? "medium";
+    const containerWidth = widthMap[pageWidth];
+
     return (
-        <form onSubmit={handleSubmit} className="p-6 pb-1 bg-[#f9fafb]">
+        <form onSubmit={handleSubmit} className={'p-6 bg-[#f9fafb] ' + allConfigs.wrapper_classes}>
             <Toaster/>
-            <div className="max-w-4xl mx-auto">
+            <div className={'mx-auto ' + containerWidth}>
                 <div className="header flex items-center justify-between mb-6">
                     <div className="logo flex items-center justify-between">
                         <img className="w-[200px] mr-2" src={pageSettingsData.logoUrl} alt="Plugin Logo"/>
@@ -127,21 +138,25 @@ export default function App() {
                 </div>
 
                 <Tabs defaultValue={Object.keys(allSetting)[0]} className="">
-                    <TabsList>
-                        {
-                            Object.entries(allSetting ?? {}).map(([key, settingTab]) => (
-                                <TabsTrigger key={key} value={key}>
-                                    {"name" in (settingTab as any) ? (settingTab as any).name : String(key)}
-                                </TabsTrigger>
-                            ))
-                        }
-                    </TabsList>
+                    {
+                        allConfigs?.show_tabs !== false && (
+                            <TabsList>
+                                {
+                                    Object.entries(allSetting ?? {}).map(([key, settingTab]) => (
+                                        <TabsTrigger key={key} value={key}>
+                                            {"name" in (settingTab as any) ? (settingTab as any).name : String(key)}
+                                        </TabsTrigger>
+                                    ))
+                                }
+                            </TabsList>
+                        )
+                    }
 
                     {
                         // Loop through the tabs
                         Object.entries((allSetting ?? {}) as Settings).map(([tabKey, settingTab]) => (
                             <TabsContent key={tabKey} value={tabKey} forceMount className="data-[state=inactive]:hidden">
-                                <div className="max-w-4xl mx-auto space-y-6">
+                                <div className="w-full mx-auto space-y-6">
                                     {
                                         // Loop through the sections in a tab
                                         Object.entries(settingTab.sections ?? {}).map(([sectionKey, section]) => (

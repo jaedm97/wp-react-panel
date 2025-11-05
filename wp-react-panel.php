@@ -20,6 +20,8 @@ if ( ! class_exists( 'WPReactPanel' ) ) {
 
 		private $version = '1.0.0';
 
+		private $configs;
+
 		public function __construct( $page_data = [], $settings_data = [], $plugin_url = '', $plugin_version = '' ) {
 
 			$this->page_data      = $page_data;
@@ -27,6 +29,7 @@ if ( ! class_exists( 'WPReactPanel' ) ) {
 			$this->page_slug      = $page_data['menu_slug'] ?? '';
 			$this->plugin_url     = $plugin_url;
 			$this->plugin_version = $plugin_version;
+			$this->configs        = $page_data['configs'] ?? [];
 
 			if ( ! isset( $this->page_data['logo_url'] ) || empty( $this->page_data['logo_url'] ) ) {
 				$this->page_data['logo_url'] = $this->plugin_url . 'wp-react-panel/app/assets/logo.svg';
@@ -36,6 +39,9 @@ if ( ! class_exists( 'WPReactPanel' ) ) {
 			add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 			add_action( 'rest_api_init', [ $this, 'register_api_routes' ] );
+
+			add_filter( 'admin_footer_text', '__return_false' );
+			add_filter( 'update_footer', '__return_false', 999 );
 		}
 
 		public function handle_update_api( WP_REST_Request $request ) {
@@ -102,11 +108,14 @@ if ( ! class_exists( 'WPReactPanel' ) ) {
 					'nonce'          => wp_create_nonce( 'wp_rest' ),
 					'pluginVersion'  => $this->plugin_version,
 					'settings'       => $this->settings_data,
+					'configs'        => $this->configs,
 					'settingsApiUrl' => get_rest_url( false, "wp-react-panel/v1/{$this->page_slug}/update" ),
 				)
 			);
 			wp_enqueue_script( "{$this->page_slug}-settings-app", $this->plugin_url . 'wp-react-panel/build/static/js/index.js', array(), $this->plugin_version, true );
 			wp_localize_script( "{$this->page_slug}-settings-app", 'reactData', $localize_data );
+
+			add_filter( 'admin_body_class', array( $this, 'add_admin_body_class' ), 999 );
 		}
 
 		public function render_settings_page() {
@@ -129,6 +138,13 @@ if ( ! class_exists( 'WPReactPanel' ) ) {
 			} else {
 				add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $this->page_slug, array( $this, 'render_settings_page' ) );
 			}
+		}
+
+		public function add_admin_body_class( $classes ) {
+
+			$classes .= ' wp-react-panel';
+
+			return $classes;
 		}
 	}
 }

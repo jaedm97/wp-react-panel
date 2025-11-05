@@ -111,3 +111,17 @@
         monospace;
     }
 }
+
+.wp-react-panel {
+    #wp-react-panel-root {
+        margin-left: -20px;
+    }
+
+    #wpfooter {
+        display: none;
+    }
+
+    #wpbody-content {
+        padding-bottom: 0;
+    }
+}
